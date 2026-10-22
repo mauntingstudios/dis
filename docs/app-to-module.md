@@ -4,7 +4,7 @@
 > the map from a Singra product to the underlying primitive it relies on.
 > Use it when debugging or when planning to swap an implementation.
 
-## Singra Vault (`github.com/einmalmaik/singravault`)
+## Singra Vault (`github.com/mauntingstudios/singravault`)
 
 The Vault is the most DIS-heavy application. It is **the reference
 consumer**: nearly every DIS module is in use somewhere.
@@ -33,7 +33,7 @@ consumer**: nearly every DIS module is in use somewhere.
 | UUIDs in UI / orchestrators | `randomUuid` | `random` |
 | Application-specific composition | `services/cryptoService.ts` is now a thin re-export of `@dis/shield/vault-crypto` | `vault-crypto` (Singra profile) |
 
-## Singra Premium (`github.com/einmalmaik/singra-premium`)
+## Singra Premium (`github.com/mauntingstudios/singra-premium`)
 
 Premium is a sibling repository that historically aliased Singra Vault's
 `src/services/*` for its own crypto. As of the Phase 4 cutover it imports
