@@ -14,8 +14,8 @@ flagged `not verified`.
 | **HKDF-SHA-256** for key separation | Sound | Domain-separated `info` per purpose (wrap-key, device-key). Zero salt acceptable because IKM (Argon2id output / device key) is already high-entropy. |
 | **Content-key indirection** (UserKey) | Good design | Password change re-wraps the content key only; no bulk re-encryption; limits exposure of the password-derived key. |
 | **Entry-id AAD on vault items** | Good | Binds ciphertext to its logical slot; defeats cross-row swap. |
-| **Per-file random key + chunk AAD** | Good | File key wrapped under content key; chunk AAD binds owner/item/file/revision/manifest-root/index/count → resists reorder, splice, cross-file reuse, truncation. |
-| **SHA-256 manifest root + per-chunk hash** | Good | Detects storage-level tampering independent of GCM tag. |
+| **Per-file random key + chunk AAD** | Good | File key wrapped under content key; chunk AAD binds owner/item/file/revision/manifest-root/index/count. Manifest v2 additionally authenticates the full chunk list and metadata, so reorder, splice, cross-file reuse and truncation are detected. v1 manifests are legacy and are not truncation-protected. |
+| **SHA-256 manifest root + per-chunk hash** | Good | The root is recomputed on read (v1 and v2); per-chunk hashes detect storage-level tampering independent of the GCM tag. |
 | **ML-KEM-768 + RSA-OAEP hybrid** (sharing) | Forward-looking | Hybrid protects against "harvest now, decrypt later"; classical RSA retained for defence in depth. Versioned blob layout. _Port to DIS in phase 2._ |
 | **Non-extractable CryptoKeys** | Good, with one documented exception | Imported keys cannot be exported from WebCrypto — except the `messaging` ratchet key pair, which must be extractable so a session can be persisted and resumed. See R-5 in `threat-model.md`. |
 | **Double Ratchet** (ECDH P-256 + HKDF-SHA-256 + AES-256-GCM) | Sound composition | Published algorithm, no invented parts. Symmetric ratchet gives forward secrecy; DH ratchet gives post-compromise security. Root/chain/message KDF stages are domain-separated (`sv-dr-root-v1` / `sv-dr-chain-v1` / `sv-dr-msg-v1`). Wire format is DIS-specific — no interop claim with libsignal. |
@@ -37,12 +37,12 @@ flagged `not verified`.
 | Key wrapping | ✔ `usk-wrap-v2` content-key wrapping |
 | Secure randomness | ✔ WebCrypto CSPRNG, never `Math.random` |
 | Negative tests | ✔ wrong key, tampered, AAD mismatch, downgrade; ratchet: forged ciphertext/header/counter, off-curve key, replay, state-intact-after-forgery |
-| Test vectors | ◐ base64/SHA-256/KDF determinism vectors present; **production golden vectors pending** (phase 1) |
+| Test vectors | ◐ internal golden vectors for KDF/AEAD/vault/UserKey/PQ are present; **external vectors for Argon2id (RFC 9106), AES-GCM (NIST CAVP), HKDF (RFC 5869) and ML-KEM (NIST ACVP) are still missing**. |
 | Documented migrations | ✔ this doc + migration-plan.md |
 | No static salts | ✔ per-account random salt; HKDF zero-salt justified above |
 | No password-as-key | ✔ always via Argon2id |
 | No unauthenticated CBC | ✔ GCM only |
-| No global mutable crypto state | ✔ single injectable provider seam |
+| No global mutable crypto state | ◐ one explicit provider seam (`setCryptoProvider`) is global by design; any in-process code can replace it. |
 | No secrets in logs / no debug bypass / no hidden fallback | ✔ typed secret-free errors; legacy read only via explicit migration API |
 
 ## Findings / recommendations

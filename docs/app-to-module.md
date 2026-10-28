@@ -13,7 +13,7 @@ consumer**: nearly every DIS module is in use somewhere.
 | --- | --- | --- |
 | Master-password KDF (Argon2id) | `deriveRawKey` / `deriveKey` | `kdf` |
 | Device-key strengthening (HKDF) | `deriveRawKey(..., deviceKey)` | `kdf` |
-| Vault item envelope (`sv-vault-v1:`) | `encryptVaultItem` / `decryptVaultItem` | `vault-encryption` |
+| Vault item envelope (`sv-vault-v2:`, v1 read) | `encryptVaultItem` / `decryptVaultItem` | `vault-encryption` |
 | Two-tier key model (`usk-wrap-v2:`) | `createEncryptedUserKey` / `unwrapUserKey` / `rewrapUserKey` | `key-management` |
 | Private-key wrapping (`usk-v1:`) | `wrapPrivateKeyWithUserKey` / `unwrapPrivateKeyWithUserKey` | `vault-crypto` |
 | RSA-OAEP for emergency access | `generateRSAKeyPair` / `encryptRSA` / `decryptRSA` | `vault-crypto` (over `asymmetric`) |
@@ -54,7 +54,7 @@ calls out. See `docs/migration-plan.md` Phase 4 for the cutover steps.
 
 If you are starting a new application that consumes DIS, you probably do
 **not** need `@dis/shield/vault-crypto`. That module is the Singra-Vault
-profile; it bakes in the `SINGRA_*` HKDF info labels, the `sv-vault-v1:`
+profile; it bakes in the `SINGRA_*` HKDF info labels, the `sv-vault-v2:`
 envelope, the `usk-wrap-v2:` user-key envelope, the `pq-v2:` shared-key
 envelope, and the Singra `VaultItemData` shape.
 

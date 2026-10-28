@@ -17,27 +17,43 @@ export {
     encryptVaultEntry,
     decryptVaultEntry,
     decryptVaultEntryForMigration,
+    sealVaultEntryString,
+    openVaultEntryString,
+    parseVaultEntryEnvelope,
+    getVaultEntryEnvelopeVersion,
     isCurrentVaultEntryEnvelope,
     VAULT_ITEM_ENVELOPE_V1_PREFIX,
+    VAULT_ITEM_ENVELOPE_V2_PREFIX,
     type VaultEntryData,
     type VaultEntryMigrationResult,
+    type VaultEntryEnvelopeVersion,
+    type ParsedVaultEntryEnvelope,
+    type OpenedVaultEntry,
 } from './vault-encryption/index.js';
 
 // Attachments / files
 export {
     encryptAttachment,
     decryptAttachment,
+    upgradeAttachmentManifest,
     encryptChunk,
     decryptChunk,
     generateFileKeyBytes,
     importFileKey,
+    manifestMacContext,
+    fileKeyAadV2,
     DEFAULT_CHUNK_SIZE,
     FILE_MANIFEST_V1_PREFIX,
     type AttachmentContext,
     type FileManifestV1,
+    type FileManifestV2,
+    type FileManifest,
     type FileChunkManifest,
     type EncryptAttachmentInput,
+    type EncryptAttachmentResult,
     type DecryptAttachmentInput,
+    type DecryptAttachmentResult,
+    type UpgradeAttachmentManifestInput,
 } from './file-encryption/index.js';
 
 // Key derivation (deriveMasterKey == deriveAesGcmKey)

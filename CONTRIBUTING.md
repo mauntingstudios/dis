@@ -31,6 +31,23 @@ merged without CLA agreement.
 - **Every change ships with tests** — including negative tests (wrong key,
   tampered data, AAD mismatch, downgrade) and, for formats, test vectors.
 
+## Test conventions
+
+Negative tests come first. A happy-path test proves that the logic works; the
+negative tests prove that the system fails closed when it is attacked. Every
+parser, envelope or format change needs at least: wrong type, wrong length,
+wrong AAD, tampered ciphertext, and a downgrade or replay attempt.
+
+- Tests live next to the code as `src/<module>/<name>.test.ts`.
+- Group rejection cases as `describe('<module> — negative', ...)` and name them
+  `it('rejects ...', ...)`.
+- Use `it.each` for field-by-field tampering tables instead of copy-pasted
+  blocks.
+- Shared helpers live in `src/test/disTestUtils.ts` (`tamperBase64`,
+  `withFixedProvider`).
+- A fix's test must be red on the pre-fix code and green after it. Mention the
+  red proof in the PR; a test that was already green does not prove the fix.
+
 ## Workflow
 
 1. Branch from `main` (never commit to `main`/`master` directly).

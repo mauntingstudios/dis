@@ -1,4 +1,4 @@
-import { randomBytes } from './chunk-3HCT6A2P.js';
+import { randomBytes } from './chunk-NGBC4E73.js';
 import { importAesGcmKey } from './chunk-OPHN2B3N.js';
 import { encryptBytes, decryptBytes, decryptString } from './chunk-U65A4HIY.js';
 import { AES_KEY_LENGTH } from './chunk-BUFRR5PB.js';
@@ -110,5 +110,5 @@ async function rotateWrappedKey(encryptedUserKey, oldKdfOutputBytes, newKdfOutpu
 }
 
 export { DEFAULT_KEY_WRAP_SCHEME, createDeterministicWrappedUserKey, createWrappedUserKey, generateAesGcmKeyJwk, generateContentKeyBytes, importAesGcmKeyFromJwk, rotateWrappedKey, unwrapUserKey, unwrapUserKeyBytes };
-//# sourceMappingURL=chunk-3DQPQCAR.js.map
-//# sourceMappingURL=chunk-3DQPQCAR.js.map
+//# sourceMappingURL=chunk-TZYUCANN.js.map
+//# sourceMappingURL=chunk-TZYUCANN.js.map

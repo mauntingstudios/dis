@@ -53,6 +53,7 @@ const registry = new MigrationRegistry()
 import { MigrationRegistry, type VersionDetector } from '@dis/shield';
 
 const detectVaultItemVersion: VersionDetector = (payload) => {
+  if (payload.startsWith('sv-vault-v2:')) return 2;
   if (payload.startsWith('sv-vault-v1:')) return 1;
   return 'legacy';
 };
@@ -72,11 +73,11 @@ the most recent migrated payload. Cycles are detected and throw
 ## What a typical step looks like
 
 ```ts
-// Re-wrap a legacy no-AAD vault item as sv-vault-v1 with AAD binding.
-const legacyNoAadToV1: Migration = {
+// Re-wrap a legacy no-AAD vault item as sv-vault-v2 with AAD binding.
+const legacyNoAadToV2: Migration = {
   subject: 'vault item',
   fromVersion: 'legacy',
-  toVersion: 1,
+  toVersion: 2,
   async migrate(payload, { key, bindingId }) {
     // Use the explicit migration helper — never re-encrypt on the runtime path.
     const { data } = await decryptVaultEntryForMigration(payload, key, bindingId!);

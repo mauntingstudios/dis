@@ -21,7 +21,7 @@ attacker, future quantum-capable attacker.
 | 2 | **Ciphertext swap between rows** | Entry-id used as AEAD AAD binds ciphertext to its row | M |
 | 3 | **Weak password brute force** | Argon2id 128 MiB (v2), versioned upgrade path | M (A: password policy) |
 | 4 | **Nonce reuse** | Fresh CSPRNG 96-bit IV per encryption; never counter-based; negative test asserts IV uniqueness | M |
-| 5 | **Downgrade / format manipulation** | Explicit version prefixes; unknown in-family versions fail closed; legacy no-AAD blocked on runtime path | M |
+| 5 | **Downgrade / format manipulation** | Explicit version prefixes; unknown in-family versions fail closed; v2 vault prefixes are bound in the AAD, so stripping v2 fails. v1 and AAD-bound legacy payloads remain readable by decision, so v1 can still be downgraded. Legacy no-AAD is blocked on the runtime path. | M (R: v1/legacy compatibility) |
 | 6 | **Migration attack** (force read of weaker legacy) | No-AAD read only via explicit migration API, never runtime | M |
 | 7 | **Replay / rollback of chunks** | Chunk AAD binds owner/item/file/revision/manifest-root/index/count; manifest root over layout | M |
 | 8 | **Cross-file chunk splice** | AAD includes file id + manifest root; per-file random key | M |
@@ -30,7 +30,7 @@ attacker, future quantum-capable attacker.
 | 11 | **Password change forces re-encrypt** (availability/timing leak) | Content-key indirection: rotate re-wraps only | M |
 | 12 | **Memory exposure / dumps** | `SecureBuffer`, wiped buffers, non-extractable keys | M (R: JS/GC cannot guarantee wiping) |
 | 13 | **Secrets in logs** | Typed errors carry no secrets; no logging in crypto path | M (A: app logging) |
-| 14 | **Metadata leaks** (file name, MIME, size) | Manifest is encrypted under vault key (AAD-bound); only ciphertext sizes/hashes are public | M (R: ciphertext size ≈ plaintext size) |
+| 14 | **Metadata leaks** (file name, MIME, size) | Manifest v2 is authenticated with an HMAC over all metadata and the chunk list, but **not encrypted**: names, MIME types and sizes remain visible wherever the manifest is stored. Only the content chunks are encrypted. MSM stores its `BlobKopf` inside the encrypted vault entry. | A/R (metadata visible; integrity protected) |
 | 15 | **Quantum "harvest now, decrypt later"** on shared material | ML-KEM-768 + RSA hybrid wrapping for sharing | M (phase 2 in DIS) |
 | 16 | **Supply-chain (malicious dep)** | No invented crypto; pinned audited deps; CI dependency + secret scanning; minimal surface | M (R: trust in `hash-wasm`/`noble`/WebCrypto) |
 | 17 | **Provider substitution attack** | Single provider seam; default is platform WebCrypto; override is explicit | M |
@@ -72,6 +72,7 @@ attacker, future quantum-capable attacker.
 ## Not verified (require evidence before claims)
 
 - Whether all current production payloads are already on `sv-vault-v1:` /
+  `sv-vault-v2:`
   `usk-wrap-v2:` (legacy no-AAD prevalence). Needs a production data audit.
 - Whether browser, Tauri, and any mobile clients use identical crypto flows.
 - Whether nonce management elsewhere in the apps (outside the extracted code)

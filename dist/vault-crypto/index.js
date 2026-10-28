@@ -1,21 +1,22 @@
 import { generateRsaOaepKeyPair, exportJwk, importRsaOaepPublicKey, importRsaOaepPrivateKey, rsaOaepEncrypt, rsaOaepDecrypt } from '../chunk-KNCZMIZA.js';
-import { generateAesGcmKeyJwk, importAesGcmKeyFromJwk, createWrappedUserKey, createDeterministicWrappedUserKey, unwrapUserKey, unwrapUserKeyBytes, rotateWrappedKey } from '../chunk-3DQPQCAR.js';
-import { generatePQKeyPair } from '../chunk-T3IV7SHD.js';
-import '../chunk-3HCT6A2P.js';
+import { generateAesGcmKeyJwk, importAesGcmKeyFromJwk, createWrappedUserKey, createDeterministicWrappedUserKey, unwrapUserKey, unwrapUserKeyBytes, rotateWrappedKey } from '../chunk-TZYUCANN.js';
+import { generatePQKeyPair } from '../chunk-KMGOHSB2.js';
+import '../chunk-NGBC4E73.js';
 import { SecureBuffer } from '../chunk-RTAJJZKO.js';
 import { DEFAULT_KDF_PARAMS, CURRENT_KDF_VERSION, generateSalt, deriveRawKey, importAesGcmKey } from '../chunk-OPHN2B3N.js';
-import { VAULT_ITEM_ENVELOPE_V1_PREFIX, encryptVaultEntry, decryptVaultEntryForMigration, decryptVaultEntry, VAULT_ITEM_ENVELOPE_SPEC } from '../chunk-JVFP2GAO.js';
+import { VAULT_ITEM_ENVELOPE_V1_PREFIX, VAULT_ITEM_ENVELOPE_V2_PREFIX, encryptVaultEntry, decryptVaultEntryForMigration, decryptVaultEntry, isCurrentVaultEntryEnvelope } from '../chunk-OKJJMNND.js';
 import { encryptString, encryptBytes, decryptString, decryptBytes } from '../chunk-U65A4HIY.js';
 import '../chunk-BUFRR5PB.js';
 export { base64ToBytes, bytesToBase64 } from '../chunk-JSKIWIEC.js';
 import '../chunk-CYIGDF63.js';
-import { parseEnvelope } from '../chunk-SCHZI6YY.js';
+import '../chunk-SCHZI6YY.js';
 import '../chunk-MJO7IJZC.js';
 
 // src/vault-crypto/index.ts
 var CURRENT_KDF_VERSION2 = CURRENT_KDF_VERSION;
 var KDF_PARAMS = { ...DEFAULT_KDF_PARAMS };
 var VAULT_ITEM_ENVELOPE_V1_PREFIX2 = VAULT_ITEM_ENVELOPE_V1_PREFIX;
+var VAULT_ITEM_ENVELOPE_V2_PREFIX2 = VAULT_ITEM_ENVELOPE_V2_PREFIX;
 var DEVICE_KEY_HKDF_INFO = "SINGRA_DEVICE_KEY_V1";
 var VERIFICATION_CONSTANT_V3 = "SINGRA_VAULT_VERIFY_V3";
 var ENCRYPTED_CATEGORY_PREFIX = "enc:cat:v1:";
@@ -89,7 +90,7 @@ async function decryptVaultItemForMigration(encryptedData, key, entryId) {
   };
 }
 function isCurrentVaultItemEnvelope(encryptedData) {
-  return parseEnvelope(VAULT_ITEM_ENVELOPE_SPEC, encryptedData).version === 1;
+  return isCurrentVaultEntryEnvelope(encryptedData);
 }
 async function createVerificationHash(key) {
   const encrypted = await encrypt(VERIFICATION_CONSTANT_V3, key);
@@ -460,6 +461,6 @@ async function getDecryptedPqPrivateKey(encryptedPqPrivateKey, userKey, masterPa
   return decryptPrivateKeyLegacy(encryptedPqPrivateKey, masterPassword, false);
 }
 
-export { CURRENT_KDF_VERSION2 as CURRENT_KDF_VERSION, KDF_PARAMS, VAULT_ITEM_ENVELOPE_V1_PREFIX2 as VAULT_ITEM_ENVELOPE_V1_PREFIX, attemptKdfUpgrade, clearReferences, createEncryptedUserKey, createVerificationHash, decrypt, decryptBytes2 as decryptBytes, decryptPrivateKeyLegacy, decryptRSA, decryptVaultItem, decryptVaultItemForMigration, decryptWithSharedKey, deriveKey, deriveRawKey2 as deriveRawKey, deriveRawKeySecure, encrypt, encryptBytes2 as encryptBytes, encryptRSA, encryptVaultItem, encryptWithSharedKey, exportPrivateKey, exportPublicKey, generateRSAKeyPair, generateSalt2 as generateSalt, generateSharedKey, generateUserKeyPair, getDecryptedPqPrivateKey, getDecryptedRsaPrivateKey, importMasterKey, importPrivateKey, importPublicKey, isCurrentVaultItemEnvelope, migrateToHybridKeyPair, migrateToUserKey, reEncryptString, reEncryptVault, rewrapUserKey, secureClear, unwrapPrivateKeyWithUserKey, unwrapUserKey2 as unwrapUserKey, unwrapUserKeyBytes2 as unwrapUserKeyBytes, verifyKey, wrapPrivateKeyWithUserKey };
+export { CURRENT_KDF_VERSION2 as CURRENT_KDF_VERSION, KDF_PARAMS, VAULT_ITEM_ENVELOPE_V1_PREFIX2 as VAULT_ITEM_ENVELOPE_V1_PREFIX, VAULT_ITEM_ENVELOPE_V2_PREFIX2 as VAULT_ITEM_ENVELOPE_V2_PREFIX, attemptKdfUpgrade, clearReferences, createEncryptedUserKey, createVerificationHash, decrypt, decryptBytes2 as decryptBytes, decryptPrivateKeyLegacy, decryptRSA, decryptVaultItem, decryptVaultItemForMigration, decryptWithSharedKey, deriveKey, deriveRawKey2 as deriveRawKey, deriveRawKeySecure, encrypt, encryptBytes2 as encryptBytes, encryptRSA, encryptVaultItem, encryptWithSharedKey, exportPrivateKey, exportPublicKey, generateRSAKeyPair, generateSalt2 as generateSalt, generateSharedKey, generateUserKeyPair, getDecryptedPqPrivateKey, getDecryptedRsaPrivateKey, importMasterKey, importPrivateKey, importPublicKey, isCurrentVaultItemEnvelope, migrateToHybridKeyPair, migrateToUserKey, reEncryptString, reEncryptVault, rewrapUserKey, secureClear, unwrapPrivateKeyWithUserKey, unwrapUserKey2 as unwrapUserKey, unwrapUserKeyBytes2 as unwrapUserKeyBytes, verifyKey, wrapPrivateKeyWithUserKey };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

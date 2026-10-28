@@ -16,11 +16,13 @@ security control.
 
 | Format | Producer today | DIS reads | DIS writes | Notes |
 | --- | --- | --- | --- | --- |
-| `sv-vault-v1:` vault item (AAD=entryId) | Vault | ✔ | ✔ | runtime path requires AAD |
-| legacy no-AAD vault item | Vault (old) | migration API only | ✘ | upgraded to v1 on migration |
+| `sv-vault-v2:` vault item (AAD=`sv-vault-v2:entryId`) | Vault | ✔ | ✔ | current write format |
+| `sv-vault-v1:` vault item (AAD=entryId) | Vault (old) | ✔ | ✘ | read compatibility; still downgradeable |
+| legacy no-AAD vault item | Vault (old) | migration API only | ✘ | upgraded to v2 on migration |
 | `usk-wrap-v2:` user key | Vault | ✔ | ✔ | HKDF info `singra-vault-wrap-v1` |
 | legacy unprefixed user key | Vault (old) | ✔ (read) | ✘ | re-wrapped to v2 on next rotation |
-| `sv-file-manifest-v1:` + chunks | Premium | ✔ | ✔ | chunk/manifest AAD preserved |
+| `sv-file-manifest-v2:` object + HMAC | Premium | ✔ | ✔ | metadata and chunk list authenticated |
+| `sv-file-manifest-v1:` + chunks | Premium | ✔ | ✘ | legacy, not truncation-protected |
 | hybrid PQ blob (`VERSION_HYBRID_STANDARD_V2`) | Vault | phase 2 | phase 2 | layout preserved |
 
 ## Step-by-step

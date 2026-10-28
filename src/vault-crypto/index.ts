@@ -39,10 +39,10 @@ import {
     decryptVaultEntry,
     decryptVaultEntryForMigration,
     encryptVaultEntry,
-    VAULT_ITEM_ENVELOPE_SPEC,
+    isCurrentVaultEntryEnvelope,
     VAULT_ITEM_ENVELOPE_V1_PREFIX as DIS_VAULT_ITEM_ENVELOPE_V1_PREFIX,
+    VAULT_ITEM_ENVELOPE_V2_PREFIX as DIS_VAULT_ITEM_ENVELOPE_V2_PREFIX,
 } from '../vault-encryption/index.js';
-import { parseEnvelope } from '../format-versioning/index.js';
 import {
     createDeterministicWrappedUserKey,
     createWrappedUserKey,
@@ -80,6 +80,7 @@ export const KDF_PARAMS: Record<number, KdfParams> = { ...DEFAULT_KDF_PARAMS };
 
 /** Versioned envelope prefix for vault item payloads. */
 export const VAULT_ITEM_ENVELOPE_V1_PREFIX = DIS_VAULT_ITEM_ENVELOPE_V1_PREFIX;
+export const VAULT_ITEM_ENVELOPE_V2_PREFIX = DIS_VAULT_ITEM_ENVELOPE_V2_PREFIX;
 
 /** HKDF `info` binding the derived key to a device key (second factor). */
 const DEVICE_KEY_HKDF_INFO = 'SINGRA_DEVICE_KEY_V1';
@@ -282,7 +283,7 @@ export async function decryptVaultItemForMigration(
  * wrap this explicitly.
  */
 export function isCurrentVaultItemEnvelope(encryptedData: string): boolean {
-    return parseEnvelope(VAULT_ITEM_ENVELOPE_SPEC, encryptedData).version === 1;
+    return isCurrentVaultEntryEnvelope(encryptedData);
 }
 
 // ============ Verification hashes ============

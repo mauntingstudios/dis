@@ -15,14 +15,17 @@ internals) must not change these signatures.
 
 ```ts
 // Vault entries (content-key in, opaque record out)
-encryptVaultEntry(data, key, entryId): Promise<string>   // -> "sv-vault-v1:..."
+encryptVaultEntry(data, key, entryId): Promise<string>   // -> "sv-vault-v2:..."
 decryptVaultEntry(sealed, key, entryId): Promise<Record<string, unknown>>
 decryptVaultEntryForMigration(sealed, key, entryId): Promise<VaultEntryMigrationResult>
+sealVaultEntryString(plaintext, key, entryId): Promise<string>
+openVaultEntryString(sealed, key, entryId): Promise<{ plaintext, version }>
 isCurrentVaultEntryEnvelope(sealed): boolean
 
 // Attachments (storage-agnostic; caller supplies chunk IO + key wrap)
-encryptAttachment(input: EncryptAttachmentInput): Promise<{ manifest: FileManifestV1; manifestRoot: string }>
-decryptAttachment(input: DecryptAttachmentInput): Promise<void>
+encryptAttachment(input: EncryptAttachmentInput): Promise<{ manifest: FileManifestV2; manifestRoot: string }>
+decryptAttachment(input: DecryptAttachmentInput): Promise<{ manifestVersion: 1 | 2 }>
+upgradeAttachmentManifest(input: UpgradeAttachmentManifestInput): Promise<FileManifestV2>
 
 interface AttachmentContext {
   readonly ownerId: string;
@@ -47,7 +50,7 @@ interface EncryptAttachmentInput {
 
 interface DecryptAttachmentInput {
   readonly context: AttachmentContext;
-  readonly manifest: FileManifestV1;
+  readonly manifest: FileManifest;
   readonly readChunk: (index: number, storedSha256: string) => Promise<string>;
   readonly writeChunk: (index: number, plaintext: Uint8Array) => Promise<void>;
   readonly unwrapFileKey: (wrappedKey: string, aad: string) => Promise<Uint8Array>;
@@ -248,8 +251,7 @@ message.
 
 ## Breaking-change policy
 
-- Format-frozen constants are append-only (`sv-vault-v1` → add `sv-vault-v2`,
-  never edit v1). Decryption keeps reading all supported versions.
+- Format-frozen constants are append-only (`sv-vault-v1` → add `sv-vault-v2`,  never edit v1). Decryption keeps reading all supported versions.
 - Removing a legacy read path is a **major** change and requires documented
   evidence that no data depends on it.
 - New optional parameters are minor; new required parameters are major.

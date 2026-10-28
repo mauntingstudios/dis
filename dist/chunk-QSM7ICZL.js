@@ -676,5 +676,5 @@ function deserializeRatchetMessage(wire) {
 }
 
 export { DEFAULT_MAX_SKIPPED_KEYS, RATCHET_MESSAGE_V1_PREFIX, RATCHET_STATE_V1_PREFIX, decryptMessage, deserializeRatchetMessage, deserializeRatchetState, destroyRatchetState, encryptMessage, generateRatchetKeyPair, initReceiverState, initSenderState, serializeRatchetMessage, serializeRatchetState };
-//# sourceMappingURL=chunk-L3SYMJ2V.js.map
-//# sourceMappingURL=chunk-L3SYMJ2V.js.map
+//# sourceMappingURL=chunk-QSM7ICZL.js.map
+//# sourceMappingURL=chunk-QSM7ICZL.js.map

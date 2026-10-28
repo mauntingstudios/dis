@@ -1,4 +1,4 @@
-export { VAULT_ITEM_ENVELOPE_SPEC, VAULT_ITEM_ENVELOPE_V1_PREFIX, decryptVaultEntry, decryptVaultEntryForMigration, encryptVaultEntry, isCurrentVaultEntryEnvelope } from '../chunk-JVFP2GAO.js';
+export { VAULT_ITEM_ENVELOPE_SPEC, VAULT_ITEM_ENVELOPE_V1_PREFIX, VAULT_ITEM_ENVELOPE_V2_PREFIX, VAULT_ITEM_ENVELOPE_V2_SPEC, decryptVaultEntry, decryptVaultEntryForMigration, encryptVaultEntry, getVaultEntryEnvelopeVersion, isCurrentVaultEntryEnvelope, openVaultEntryString, parseVaultEntryEnvelope, sealVaultEntryString } from '../chunk-OKJJMNND.js';
 import '../chunk-U65A4HIY.js';
 import '../chunk-BUFRR5PB.js';
 import '../chunk-JSKIWIEC.js';

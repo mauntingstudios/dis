@@ -21,6 +21,8 @@
  */
 
 import { ml_kem768 } from '@noble/post-quantum/ml-kem.js';
+import { subtle } from '../core/provider.js';
+import { randomBytes } from '../random/index.js';
 
 // ============ Constants ============
 
@@ -91,16 +93,17 @@ export function buildSharedKeyWrapAad(input: SharedKeyWrapAadInput): string {
  * @returns Object with base64-encoded public and secret keys
  */
 export function generatePQKeyPair(): PQKeyPair {
-    const seed = crypto.getRandomValues(new Uint8Array(64));
-    const { publicKey, secretKey } = ml_kem768.keygen(seed);
-    
-    // Zero the seed immediately
-    seed.fill(0);
-    
-    return {
-        publicKey: uint8ArrayToBase64(publicKey),
-        secretKey: uint8ArrayToBase64(secretKey),
-    };
+    const seed = randomBytes(64);
+    try {
+        const { publicKey, secretKey } = ml_kem768.keygen(seed);
+
+        return {
+            publicKey: uint8ArrayToBase64(publicKey),
+            secretKey: uint8ArrayToBase64(secretKey),
+        };
+    } finally {
+        seed.fill(0);
+    }
 }
 
 /**
@@ -113,7 +116,7 @@ export async function generateHybridKeyPair(): Promise<HybridKeyPair> {
     const pqKeys = generatePQKeyPair();
     
     // Generate RSA-4096 key pair
-    const rsaKeyPair = await crypto.subtle.generateKey(
+    const rsaKeyPair = await subtle().generateKey(
         {
             name: 'RSA-OAEP',
             modulusLength: 4096,
@@ -124,8 +127,8 @@ export async function generateHybridKeyPair(): Promise<HybridKeyPair> {
         ['encrypt', 'decrypt']
     );
     
-    const rsaPublicJwk = await crypto.subtle.exportKey('jwk', rsaKeyPair.publicKey);
-    const rsaPrivateJwk = await crypto.subtle.exportKey('jwk', rsaKeyPair.privateKey);
+    const rsaPublicJwk = await subtle().exportKey('jwk', rsaKeyPair.publicKey);
+    const rsaPrivateJwk = await subtle().exportKey('jwk', rsaKeyPair.privateKey);
     
     return {
         pqPublicKey: pqKeys.publicKey,
@@ -159,17 +162,20 @@ export async function hybridEncrypt(
     rsaPublicKey: string,
     aad?: string
 ): Promise<string> {
-    // 1. Generate random AES-256 key (32 bytes)
-    const aesKeyBytes = crypto.getRandomValues(new Uint8Array(32));
-    
-    // 2. Encapsulate with ML-KEM-768
-    const pqPubKeyBytes = base64ToUint8Array(pqPublicKey);
-    const { cipherText: pqCiphertext, sharedSecret: pqSharedSecret } = 
-        ml_kem768.encapsulate(pqPubKeyBytes);
+    const aesKeyBytes = randomBytes(32);
+    const plaintextBytes = new TextEncoder().encode(plaintext);
+    let pqSharedSecret: Uint8Array | null = null;
+    let combinedKey: Uint8Array | null = null;
+    try {
+        // 2. Encapsulate with ML-KEM-768
+        const pqPubKeyBytes = base64ToUint8Array(pqPublicKey);
+        const encapsulated = ml_kem768.encapsulate(pqPubKeyBytes);
+        pqSharedSecret = encapsulated.sharedSecret;
+        const pqCiphertext = encapsulated.cipherText;
     
     // 3. Encrypt AES key with RSA-OAEP
     const rsaPubKeyJwk = JSON.parse(rsaPublicKey);
-    const rsaPubKey = await crypto.subtle.importKey(
+    const rsaPubKey = await subtle().importKey(
         'jwk',
         rsaPubKeyJwk,
         { name: 'RSA-OAEP', hash: 'SHA-256' },
@@ -177,7 +183,7 @@ export async function hybridEncrypt(
         ['encrypt']
     );
     
-    const rsaCiphertext = await crypto.subtle.encrypt(
+    const rsaCiphertext = await subtle().encrypt(
         { name: 'RSA-OAEP' },
         rsaPubKey,
         asBufferSource(aesKeyBytes)
@@ -186,38 +192,32 @@ export async function hybridEncrypt(
     const rsaCiphertextBytes = new Uint8Array(rsaCiphertext);
 
     // 4. Derive combined key using standard-compliant HKDF-v2
-    const combinedKey = await deriveHybridCombinedKeyV2(
+    combinedKey = await deriveHybridCombinedKeyV2(
         pqSharedSecret,
         aesKeyBytes,
         rsaCiphertextBytes,
     );
     
     // 5. Encrypt plaintext with combined AES key
-    const aesKey = await crypto.subtle.importKey(
+    const aesKey = await subtle().importKey(
         'raw',
-        asBufferSource(combinedKey),
+        asBufferSource(combinedKey!),
         { name: 'AES-GCM', length: 256 },
         false,
         ['encrypt']
     );
     
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const plaintextBytes = new TextEncoder().encode(plaintext);
+    const iv = randomBytes(12);
     const aadBytes = aad ? new TextEncoder().encode(aad) : undefined;
-    const gcmParams: AesGcmParams = { name: 'AES-GCM', iv, tagLength: 128 };
+    const gcmParams: AesGcmParams = { name: 'AES-GCM', iv: asBufferSource(iv), tagLength: 128 };
     if (aadBytes) {
         gcmParams.additionalData = aadBytes;
     }
-    const aesCiphertext = await crypto.subtle.encrypt(
+    const aesCiphertext = await subtle().encrypt(
         gcmParams,
         aesKey,
-        plaintextBytes
+        asBufferSource(plaintextBytes)
     );
-    
-    // 6. Zero sensitive data
-    aesKeyBytes.fill(0);
-    pqSharedSecret.fill(0);
-    combinedKey.fill(0);
     
     // 7. Combine: version || pq_ciphertext || rsa_ciphertext || iv || aes_ciphertext
     const aesCiphertextBytes = new Uint8Array(aesCiphertext);
@@ -237,6 +237,12 @@ export async function hybridEncrypt(
     combined.set(aesCiphertextBytes, offset);
     
     return uint8ArrayToBase64(combined);
+    } finally {
+        aesKeyBytes.fill(0);
+        plaintextBytes.fill(0);
+        pqSharedSecret?.fill(0);
+        combinedKey?.fill(0);
+    }
 }
 
 /**
@@ -267,7 +273,7 @@ async function legacyRsaDecrypt(
     rsaPrivateKey: string
 ): Promise<string> {
     const rsaPrivKeyJwk = JSON.parse(rsaPrivateKey);
-    const rsaPrivKey = await crypto.subtle.importKey(
+    const rsaPrivKey = await subtle().importKey(
         'jwk',
         rsaPrivKeyJwk,
         { name: 'RSA-OAEP', hash: 'SHA-256' },
@@ -275,7 +281,7 @@ async function legacyRsaDecrypt(
         ['decrypt']
     );
     
-    const plaintextBytes = await crypto.subtle.decrypt(
+    const plaintextBytes = await subtle().decrypt(
         { name: 'RSA-OAEP' },
         rsaPrivKey,
         asBufferSource(ciphertext)
@@ -478,7 +484,7 @@ async function deriveHybridCombinedKey(
     aesKeyBytes: Uint8Array,
     rsaCiphertext: Uint8Array,
 ): Promise<Uint8Array> {
-    const baseKey = await crypto.subtle.importKey(
+    const baseKey = await subtle().importKey(
         'raw',
         asBufferSource(pqSharedSecret),
         'HKDF',
@@ -488,7 +494,7 @@ async function deriveHybridCombinedKey(
 
     const info = concatUint8Arrays(HYBRID_KDF_INFO_PREFIX, rsaCiphertext);
     try {
-        const derivedBits = await crypto.subtle.deriveBits(
+        const derivedBits = await subtle().deriveBits(
             {
                 name: 'HKDF',
                 hash: 'SHA-256',
@@ -521,7 +527,7 @@ async function deriveHybridCombinedKeyV2(
     // IKM = pqSharedSecret || aesKeyBytes (both secrets as input keying material)
     const ikm = concatUint8Arrays(pqSharedSecret, aesKeyBytes);
 
-    const baseKey = await crypto.subtle.importKey(
+    const baseKey = await subtle().importKey(
         'raw',
         asBufferSource(ikm),
         'HKDF',
@@ -531,7 +537,7 @@ async function deriveHybridCombinedKeyV2(
 
     const info = concatUint8Arrays(HYBRID_KDF_INFO_V2, rsaCiphertext);
     try {
-        const derivedBits = await crypto.subtle.deriveBits(
+        const derivedBits = await subtle().deriveBits(
             {
                 name: 'HKDF',
                 hash: 'SHA-256',
@@ -595,13 +601,20 @@ async function decryptHybridCiphertext(
 
     const { pqCiphertext, rsaCiphertext, iv, aesCiphertext } = parseHybridCiphertext(combined);
 
-    // Decapsulate ML-KEM-768 shared secret.
-    const pqSecretKeyBytes = base64ToUint8Array(pqSecretKey);
-    const pqSharedSecret = ml_kem768.decapsulate(pqCiphertext, pqSecretKeyBytes);
+    let pqSecretKeyBytes: Uint8Array | null = null;
+    let pqSharedSecret: Uint8Array | null = null;
+    let aesKeyBytes: Uint8Array | null = null;
+    let combinedKey: Uint8Array | null = null;
+    try {
+        // Decapsulate ML-KEM-768 shared secret.
+        const decapsulationKey = base64ToUint8Array(pqSecretKey);
+        pqSecretKeyBytes = decapsulationKey;
+        const sharedSecret = ml_kem768.decapsulate(pqCiphertext, decapsulationKey);
+        pqSharedSecret = sharedSecret;
 
     // Decrypt AES key with RSA-OAEP.
     const rsaPrivKeyJwk = JSON.parse(rsaPrivateKey);
-    const rsaPrivKey = await crypto.subtle.importKey(
+    const rsaPrivKey = await subtle().importKey(
         'jwk',
         rsaPrivKeyJwk,
         { name: 'RSA-OAEP', hash: 'SHA-256' },
@@ -609,55 +622,61 @@ async function decryptHybridCiphertext(
         ['decrypt']
     );
 
-    const aesKeyBytes = new Uint8Array(await crypto.subtle.decrypt(
+    const aesKeyMaterial = new Uint8Array(await subtle().decrypt(
         { name: 'RSA-OAEP' },
         rsaPrivKey,
         asBufferSource(rsaCiphertext)
     ));
+    aesKeyBytes = aesKeyMaterial;
 
     // Select KDF based on version
-    let combinedKey: Uint8Array;
+    let combinedKeyMaterial: Uint8Array;
     if (version === VERSION_HYBRID_STANDARD_V2) {
-        combinedKey = await deriveHybridCombinedKeyV2(
-            pqSharedSecret,
-            aesKeyBytes,
+        combinedKeyMaterial = await deriveHybridCombinedKeyV2(
+            sharedSecret,
+            aesKeyMaterial,
             rsaCiphertext,
         );
     } else {
         // 0x03 and 0x02 use legacy HKDF-v1
-        combinedKey = await deriveHybridCombinedKey(
-            pqSharedSecret,
-            aesKeyBytes,
+        combinedKeyMaterial = await deriveHybridCombinedKey(
+            sharedSecret,
+            aesKeyMaterial,
             rsaCiphertext,
         );
     }
+    combinedKey = combinedKeyMaterial;
 
     // Decrypt plaintext with combined AES key.
-    const aesKey = await crypto.subtle.importKey(
+    const aesKey = await subtle().importKey(
         'raw',
-        asBufferSource(combinedKey),
+        asBufferSource(combinedKeyMaterial),
         { name: 'AES-GCM', length: 256 },
         false,
         ['decrypt']
     );
 
-    try {
-        const aadBytes = aad ? new TextEncoder().encode(aad) : undefined;
-        const gcmParams: AesGcmParams = { name: 'AES-GCM', iv: asBufferSource(iv), tagLength: 128 };
-        if (aadBytes) {
-            gcmParams.additionalData = aadBytes;
-        }
-        const plaintextBytes = await crypto.subtle.decrypt(
-            gcmParams,
-            aesKey,
-            asBufferSource(aesCiphertext)
-        );
+    const aadBytes = aad ? new TextEncoder().encode(aad) : undefined;
+    const gcmParams: AesGcmParams = { name: 'AES-GCM', iv: asBufferSource(iv), tagLength: 128 };
+    if (aadBytes) {
+        gcmParams.additionalData = aadBytes;
+    }
+    const plaintextBytes = new Uint8Array(await subtle().decrypt(
+        gcmParams,
+        aesKey,
+        asBufferSource(aesCiphertext)
+    ));
 
+    try {
         return new TextDecoder().decode(plaintextBytes);
     } finally {
-        aesKeyBytes.fill(0);
-        pqSharedSecret.fill(0);
-        combinedKey.fill(0);
+        plaintextBytes.fill(0);
+    }
+    } finally {
+        pqSecretKeyBytes?.fill(0);
+        pqSharedSecret?.fill(0);
+        aesKeyBytes?.fill(0);
+        combinedKey?.fill(0);
     }
 }
 

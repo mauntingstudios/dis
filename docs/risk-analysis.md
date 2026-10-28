@@ -29,7 +29,9 @@ CI. No app changes. _Status: done in this PR._
 Vault/Premium (one each: vault item, wrapped user key, attachment manifest +
 chunk, hybrid blob). Add cross-impl tests asserting DIS decrypts them and the
 app decrypts DIS output. Audit legacy no-AAD prevalence. _Gate before any app
-change._
+change. Status: internal golden vectors for KDF/AEAD/vault/UserKey/PQ are in
+`src/compat/`; the production attachment-manifest vector, the cross-impl app
+test and the legacy prevalence audit are still open._
 
 **Phase 2 — PQ hybrid + remaining modules.** Port `pqCryptoService` (ML-KEM-768
 + RSA) into `key-management` PQ submodule with version byte preserved.

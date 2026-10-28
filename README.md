@@ -22,7 +22,7 @@ primitives:
 
 ## Status
 
-This is the **foundation release** (`0.1.0`). The pure, portable primitives
+This is the **0.4.0 security hardening release**. The pure, portable primitives
 (encoding, random, secure memory, KDF, AEAD, vault-entry encryption, key
 wrapping/rotation, chunked file encryption, integrity, format versioning,
 migration framework) are implemented and tested. The post-quantum hybrid

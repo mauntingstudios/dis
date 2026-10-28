@@ -27,8 +27,13 @@ declare function generateEcdsaP256KeyPair(): Promise<EcdsaP256KeyPair>;
 declare function importEcdsaP256PublicKeySpki(spki: Uint8Array): Promise<CryptoKey>;
 /**
  * Signs `data` with an ECDSA P-256 private key, returning the raw 64-byte
- * `r || s` signature. Throws {@link DisInvalidArgumentError} if WebCrypto
- * returns an unexpected length (defends against curve/algorithm misuse).
+ * `r || s` signature. The `s` value is normalised to the lower half of the
+ * curve order, so a given message has one canonical signature rather than the
+ * `(r, s)` / `(r, n-s)` pair. Verification still accepts high-S signatures so
+ * existing stored signatures keep working.
+ *
+ * Throws {@link DisInvalidArgumentError} if WebCrypto returns an unexpected
+ * length (defends against curve/algorithm misuse).
  */
 declare function signEcdsaP256(privateKey: CryptoKey, data: Uint8Array): Promise<Uint8Array>;
 /**

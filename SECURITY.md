@@ -17,9 +17,13 @@ acknowledge within a few days.
 - Security properties, accepted residual risks, and unverified assumptions are
   documented in [`docs/threat-model.md`](docs/threat-model.md) and
   [`docs/crypto-review.md`](docs/crypto-review.md).
-- Persisted formats are versioned and authenticated; unknown versions fail
-  closed; legacy unauthenticated payloads are readable only on an explicit
-  migration path.
+- Persisted formats are versioned and fail closed on unknown versions. Vault
+  items are written as `sv-vault-v2:` with the version in the AAD; v1 and
+  AAD-bound legacy payloads are still read for compatibility. Legacy no-AAD
+  payloads are readable only on an explicit migration path.
+- File manifests are authenticated in version 2 (HMAC over metadata and the
+  chunk list); version 1 manifests are read for compatibility and are not
+  truncation-protected.
 
 ## Supported versions
 

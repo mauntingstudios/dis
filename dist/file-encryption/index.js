@@ -1,6 +1,6 @@
-export { DEFAULT_CHUNK_SIZE, FILE_MANIFEST_V1_PREFIX, chunkAad, chunkCiphertextHash, computeManifestRoot, decryptAttachment, decryptChunk, encryptAttachment, encryptChunk, fileKeyAad, generateFileKeyBytes, importFileKey, manifestAad } from '../chunk-EOXWR7DS.js';
+export { DEFAULT_CHUNK_SIZE, FILE_MANIFEST_V1_PREFIX, chunkAad, chunkCiphertextHash, computeManifestRoot, decryptAttachment, decryptChunk, encryptAttachment, encryptChunk, fileKeyAad, fileKeyAadV2, generateFileKeyBytes, importFileKey, manifestAad, manifestMacContext, upgradeAttachmentManifest } from '../chunk-PEAGYL2R.js';
 import '../chunk-MPWYZXW7.js';
-import '../chunk-3HCT6A2P.js';
+import '../chunk-NGBC4E73.js';
 import '../chunk-OPHN2B3N.js';
 import '../chunk-U65A4HIY.js';
 import '../chunk-BUFRR5PB.js';

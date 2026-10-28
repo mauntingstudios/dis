@@ -35,6 +35,10 @@ export function fillRandom<T extends ArrayBufferView>(view: T): T {
  * Byte-for-byte equivalent to the `getSecureRandomInt` helpers in Singra Vault
  * (password generator, backup-code generator): it draws `ceil(log2(range)/8)`
  * bytes big-endian and rejects values above the largest multiple of `range`.
+ *
+ * The range is capped at 2^32 values. Larger ranges would need more than four
+ * random bytes; the 32-bit accumulator below would silently wrap. Callers that
+ * need a wider identifier should compose several draws instead.
  */
 export function randomInt(min: number, max: number): number {
     if (!Number.isInteger(min) || !Number.isInteger(max)) {
@@ -44,6 +48,9 @@ export function randomInt(min: number, max: number): number {
         throw new DisInvalidArgumentError('randomInt max must be >= min');
     }
     const range = max - min + 1;
+    if (!Number.isSafeInteger(range) || range > 0x1_0000_0000) {
+        throw new DisInvalidArgumentError('randomInt range must be <= 2^32');
+    }
     if (range === 1) {
         return min;
     }
@@ -55,7 +62,8 @@ export function randomInt(min: number, max: number): number {
         getCryptoProvider().getRandomValues(buffer);
         randomValue = 0;
         for (let i = 0; i < bytesNeeded; i++) {
-            randomValue = (randomValue << 8) | buffer[i]!;
+            // `>>> 0` keeps the accumulator unsigned; plain `<<` wraps at 2^31.
+            randomValue = ((randomValue << 8) | buffer[i]!) >>> 0;
         }
     } while (randomValue > maxValid);
     return min + (randomValue % range);

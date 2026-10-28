@@ -20,6 +20,10 @@ declare function fillRandom<T extends ArrayBufferView>(view: T): T;
  * Byte-for-byte equivalent to the `getSecureRandomInt` helpers in Singra Vault
  * (password generator, backup-code generator): it draws `ceil(log2(range)/8)`
  * bytes big-endian and rejects values above the largest multiple of `range`.
+ *
+ * The range is capped at 2^32 values. Larger ranges would need more than four
+ * random bytes; the 32-bit accumulator below would silently wrap. Callers that
+ * need a wider identifier should compose several draws instead.
  */
 declare function randomInt(min: number, max: number): number;
 /** Returns a RFC 4122 v4 UUID using the provider's CSPRNG. */

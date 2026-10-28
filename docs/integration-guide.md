@@ -57,7 +57,7 @@ master password + salt  ──Argon2id──▶  KEK (raw bytes or CryptoKey)
                                           │                    no data re-encryption
                                           │
                                           ▼
-                                    vault items  (sv-vault-v1: envelope, AAD = entry id)
+                                    vault items  (sv-vault-v2: envelope, AAD = sv-vault-v2:entry id)
 ```
 
 ```ts
@@ -86,7 +86,7 @@ const plain = await decryptVaultEntry(sealed, userKey, entryId);
 ```
 
 **Wire-format note.** The `encryptedUserKey` string is `usk-wrap-v2:<base64>`.
-The `sealed` item is `sv-vault-v1:<base64>`. Both prefixes are part of the
+The `sealed` item is `sv-vault-v2:<base64>` (v1 is still read). Both prefixes are part of the
 format contract — see `docs/crypto-dependency-map.md` for the full list of
 frozen constants. **Never change a published prefix.** Add a new version
 instead.

@@ -79,10 +79,16 @@ describe('Singra profile — vault item round-trip & fail-closed', () => {
         await expect(vault.decryptVaultItem(sealed, key, 'entry-2')).rejects.toThrow();
     });
 
-    it('isCurrentVaultItemEnvelope: true for v1, false for legacy, THROWS for unknown sv-vault-*', async () => {
+    it('isCurrentVaultItemEnvelope: true for v2, false for v1 and legacy, THROWS for unknown sv-vault-*', async () => {
         const key = await vault.deriveKey(PW, SALT, 2);
         const sealed = await vault.encryptVaultItem({ password: 'p' }, key, 'e');
         expect(vault.isCurrentVaultItemEnvelope(sealed)).toBe(true);
+
+        const v1Payload = await vault.encrypt(JSON.stringify({ password: 'p' }), key, 'e');
+        const v1 = `${vault.VAULT_ITEM_ENVELOPE_V1_PREFIX}${v1Payload}`;
+        expect(vault.isCurrentVaultItemEnvelope(v1)).toBe(false);
+        expect(await vault.decryptVaultItem(v1, key, 'e')).toEqual({ password: 'p' });
+
         expect(vault.isCurrentVaultItemEnvelope('bGVnYWN5LWJhc2U2NA==')).toBe(false);
         expect(() => vault.isCurrentVaultItemEnvelope('sv-vault-v99:future-payload')).toThrow(
             /Unsupported vault item encryption envelope version/,
@@ -102,6 +108,21 @@ describe('Singra profile — vault item round-trip & fail-closed', () => {
         ).resolves.toEqual(item);
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('Legacy entry without AAD detected'));
         warn.mockRestore();
+    });
+});
+
+describe('Singra profile — re-encryption helper', () => {
+    it('re-encrypts from an old key to a new key and rejects the wrong old key', async () => {
+        const oldKey = await vault.deriveKey(PW, SALT, 1);
+        const newKey = await vault.deriveKey(PW, SALT, 2);
+        const sealed = await vault.encrypt('payload', oldKey, 'entry-1');
+
+        const reEncrypted = await vault.reEncryptString(sealed, oldKey, newKey, 'entry-1');
+        expect(await vault.decrypt(reEncrypted, newKey, 'entry-1')).toBe('payload');
+
+        await expect(
+            vault.reEncryptString(sealed, newKey, newKey, 'entry-1'),
+        ).rejects.toThrow();
     });
 });
 

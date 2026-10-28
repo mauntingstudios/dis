@@ -21,6 +21,9 @@ function randomInt(min, max) {
     throw new DisInvalidArgumentError("randomInt max must be >= min");
   }
   const range = max - min + 1;
+  if (!Number.isSafeInteger(range) || range > 4294967296) {
+    throw new DisInvalidArgumentError("randomInt range must be <= 2^32");
+  }
   if (range === 1) {
     return min;
   }
@@ -32,7 +35,7 @@ function randomInt(min, max) {
     getCryptoProvider().getRandomValues(buffer);
     randomValue = 0;
     for (let i = 0; i < bytesNeeded; i++) {
-      randomValue = randomValue << 8 | buffer[i];
+      randomValue = (randomValue << 8 | buffer[i]) >>> 0;
     }
   } while (randomValue > maxValid);
   return min + randomValue % range;
@@ -51,5 +54,5 @@ function randomUuid() {
 }
 
 export { fillRandom, randomBytes, randomInt, randomUuid };
-//# sourceMappingURL=chunk-3HCT6A2P.js.map
-//# sourceMappingURL=chunk-3HCT6A2P.js.map
+//# sourceMappingURL=chunk-NGBC4E73.js.map
+//# sourceMappingURL=chunk-NGBC4E73.js.map

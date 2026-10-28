@@ -13,9 +13,9 @@ describe('STRESS & HARDENING: Vault Cryptolayer Resiliency', () => {
         const originalData = { password: 'TopSecretCredentials-2026', username: 'admin' };
 
         const sealed = await vault.encryptVaultItem(originalData, bundle.userKey, entryId);
-        expect(sealed.startsWith('sv-vault-v1:')).toBe(true);
+        expect(sealed.startsWith('sv-vault-v2:')).toBe(true);
 
-        const payloadPart = sealed.replace('sv-vault-v1:', '');
+        const payloadPart = sealed.replace('sv-vault-v2:', '');
 
         // 1. Bit-flipping across multiple positions
         const flipPositions = [0, 5, 10, 20, payloadPart.length - 1, Math.floor(payloadPart.length / 2)];
@@ -52,7 +52,7 @@ describe('STRESS & HARDENING: Vault Cryptolayer Resiliency', () => {
 
         const fakeVersions = [
             'sv-vault-v0:somevalidpayload',
-            'sv-vault-v2:futureversionpayload',
+            'sv-vault-v3:futureversionpayload',
             'sv-vault-v999:attackerpayload',
             'sv-vault-vbeta:test',
         ];

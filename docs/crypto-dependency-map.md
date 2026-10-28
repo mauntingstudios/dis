@@ -65,12 +65,12 @@ via a thin app-local `crypto` adapter — see `migration-plan.md`).
 
 | Constant | Value | Module |
 | --- | --- | --- |
-| Vault item envelope | `sv-vault-v1:` + `base64(IV‖CT‖tag)` | `vault-encryption` |
+| Vault item envelope | `sv-vault-v2:` + `base64(IV‖CT‖tag)`, AAD=`sv-vault-v2:entryId` (v1 read) | `vault-encryption` |
 | User-key wrap | `usk-wrap-v2:` + `base64(IV‖CT‖tag)` | `key-management` |
 | User-key wrap HKDF info | `singra-vault-wrap-v1` (zero salt) | `key-management` |
 | Device-key HKDF info | `SINGRA_DEVICE_KEY_V1` | app-supplied to `kdf.strengthen` |
-| File manifest envelope | `sv-file-manifest-v1:` | `file-encryption` |
-| File-key AAD | `sv-file-key-v1:{owner}:{item}:{file}` | `file-encryption` |
+| File manifest | `FileManifestV2` object + HMAC (no envelope); v1 object read | `file-encryption` |
+| File-key AAD | `sv-file-key-v2:{owner}:{item}:{file}` (v1 read) | `file-encryption` |
 | Chunk AAD | `sv-file-chunk-v1:{owner}:{item}:{file}:{rev}:{root}:{idx}:{count}` | `file-encryption` |
 | KDF v1 / v2 | 64 MiB / 128 MiB Argon2id, t=3, p=4, 32B | `kdf` |
 | AES-GCM | IV 12B, tag 128b, key 256b | `aead` |

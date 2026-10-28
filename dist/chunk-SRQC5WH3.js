@@ -1,5 +1,5 @@
 import { sha256Hex, importHmacSha256Key, hmacSha256WithKey, constantTimeEqual } from './chunk-MPWYZXW7.js';
-import { randomBytes, randomInt } from './chunk-3HCT6A2P.js';
+import { randomBytes, randomInt } from './chunk-NGBC4E73.js';
 import { bytesToHex, utf8ToBytes } from './chunk-JSKIWIEC.js';
 import { DisInvalidArgumentError } from './chunk-MJO7IJZC.js';
 
@@ -117,5 +117,5 @@ async function solveAltchaChallenge(challenge) {
 }
 
 export { createAltchaChallenge, solveAltchaChallenge, verifyAltchaSolution };
-//# sourceMappingURL=chunk-VWOKA5EL.js.map
-//# sourceMappingURL=chunk-VWOKA5EL.js.map
+//# sourceMappingURL=chunk-SRQC5WH3.js.map
+//# sourceMappingURL=chunk-SRQC5WH3.js.map
