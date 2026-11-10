@@ -10,3 +10,7 @@ GEMINI.md
 AGENTS.md
 CLAUDE.md
 /.qoder
+/.agents
+/assets/
+*.png
+

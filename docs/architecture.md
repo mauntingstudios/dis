@@ -89,3 +89,8 @@ layout, AAD strings, HKDF `info` labels, KDF parameters). This is what allows
 the applications to adopt DIS without re-encrypting existing data. These format
 constants are frozen; evolving them means **adding a version**, never editing
 one. See `crypto-dependency-map.md` and `migration-plan.md`.
+
+## Higher-level application integration
+
+Consumer applications (such as Maunting Service Manager) compose DIS primitives into application-level security workflows:
+- **Smartcard & Wallet Logic:** Cross-device zero-knowledge identity, blind bucket seed derivation, and ephemeral E2EE relays. See [smartcard-architecture.md](./smartcard-architecture.md) (German version: [smartcard-architecture.de.md](./smartcard-architecture.de.md)).
